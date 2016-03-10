@@ -31,8 +31,7 @@ module GoodData
         CSV.foreach(File.open(data_source.realize(params), 'r:UTF-8'), :headers => true, :return_headers => false, encoding: 'utf-8') do |row|
           clients << {
             :id => row[client_id_column],
-            :segment => row[segment_id_column],
-            :project => row[project_id_column]
+            :segment => row[segment_id_column]
           }.compact
         end
 

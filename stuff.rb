@@ -69,6 +69,11 @@ class Release
   def with_segment(segment, &block)
     @handles << [@domain.segments(segment), block]
   end
+
+  def with_project(project, &block)
+    @handles << [@domain.client.projects(project), block]
+  end
+
 end
 
 def sanity_check(domain)
@@ -92,14 +97,19 @@ def release(domain, new_version, options = {}, &block)
     [segment, new_project]
   end
 
+
   release = Release.new(domain)
   block.call(release)
 
-  release.handles.each do |seg, stuff|
-   result = stuff.call(seg, new_projects.find { |s, p| seg.id == s.id }.last)
-   if result.is_a?(GoodData::Project)
-     new_projects.find { |s, p| seg.id == s.id }.last == result
-   end
+  release.handles.each do |seg, b|
+    if seg.is_a(GoodData::Project)
+      result = b.call(seg)
+    else
+      result = b.call(seg, new_projects.find { |s, p| seg.id == s.id }.last)
+      if result.is_a?(GoodData::Project)
+        new_projects.find { |s, p| seg.id == s.id }.last == result
+      end
+    end
   end
 
   new_projects.peach do |segment, project|
